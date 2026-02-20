@@ -442,6 +442,12 @@ function addInventory(){
   });
 
   Storage.set("inventory",inventory);
+
+  // clear form
+  invName.value="";
+  invQty.value="";
+  invMin.value="";
+
   updateDashboard();
 }
 
