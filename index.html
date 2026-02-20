@@ -422,11 +422,13 @@ function editOrder(id){
   let orders = Storage.get("orders");
   let o = orders.find(x=>x.id===id);
   let newTotal = prompt("New Total:",o.total);
+
   if(newTotal!==null){
-    o.total=+newTotal;
+    o.total = +newTotal;
     Storage.set("orders",orders);
     updateDashboard();
   }
+}
 /* ================= RECEIPT ================= */
 function printReceipt(id){
   let o = Storage.get("orders").find(x=>x.id===id);
