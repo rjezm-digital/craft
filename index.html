@@ -124,8 +124,9 @@ body{
         <div class="grid md:grid-cols-4 gap-4">
           <input id="orderCustomer" placeholder="Customer Name"
             class="border p-2 rounded">
-          <input id="orderProduct" placeholder="Product"
-            class="border p-2 rounded">
+          <select id="orderProduct" class="border p-2 rounded">
+  <option value="">Select Product</option>
+</select>
           <input id="orderTotal" type="number" placeholder="Total"
             class="border p-2 rounded">
           <input id="orderDP" type="number" placeholder="Downpayment"
@@ -306,6 +307,7 @@ function updateDashboard(){
   renderOrders();
   renderCustomers();
   renderInventory();
+  populateProducts();
 }
 
 /* ================= STATUS BADGE ================= */
@@ -322,14 +324,34 @@ function badge(status){
 /* ================= ORDERS ================= */
 function addOrder(){
   let orders = Storage.get("orders");
+  let inventory = Storage.get("inventory");
+
+  let selectedProduct = orderProduct.value;
+
+  if(!selectedProduct){
+    alert("Please select a product.");
+    return;
+  }
+
+  let productItem = inventory.find(i =>
+    i.type === "Product" &&
+    i.name === selectedProduct
+  );
+
+  if(!productItem || productItem.qty <= 0){
+    alert("⚠ Product out of stock!");
+    return;
+  }
+
   orders.push({
-    id:Date.now(),
-    customer:orderCustomer.value,
-    product:orderProduct.value,
-    total:+orderTotal.value,
-    dp:+orderDP.value,
-    status:"Pending"
+    id: Date.now(),
+    customer: orderCustomer.value,
+    product: selectedProduct,
+    total: +orderTotal.value,
+    dp: +orderDP.value,
+    status: "Pending"
   });
+
   Storage.set("orders",orders);
   updateDashboard();
 }
@@ -373,23 +395,22 @@ function changeStatus(id, newStatus){
 
   order.status = newStatus;
 
-  // If status changed to Released
   if(oldStatus !== "Released" && newStatus === "Released"){
-
-    // Find matching product in inventory
     let productItem = inventory.find(i =>
       i.type === "Product" &&
-      i.name.toLowerCase() === order.product.toLowerCase()
+      i.name === order.product
     );
 
     if(productItem){
-      if(productItem.qty > 0){
-        productItem.qty -= 1;
-      } else {
-        alert("⚠ Product stock is already 0!");
-      }
+      productItem.qty -= 1;
+      if(productItem.qty < 0) productItem.qty = 0;
     }
   }
+
+  Storage.set("orders",orders);
+  Storage.set("inventory",inventory);
+  updateDashboard();
+}
 
   Storage.set("orders",orders);
   Storage.set("inventory",inventory);
@@ -481,6 +502,22 @@ function exportCSV(){
   a.href=URL.createObjectURL(blob);
   a.download="orders.csv";
   a.click();
+}
+
+function populateProducts(){
+  let inventory = Storage.get("inventory");
+  let select = document.getElementById("orderProduct");
+
+  select.innerHTML = `<option value="">Select Product</option>`;
+
+  inventory
+    .filter(i => i.type === "Product")
+    .forEach(i=>{
+      select.innerHTML += `
+        <option value="${i.name}">
+          ${i.name} (Stock: ${i.qty})
+        </option>`;
+    });
 }
 
 /* ================= ADD INVENTORY ================= */
