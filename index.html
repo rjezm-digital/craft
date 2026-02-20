@@ -326,12 +326,21 @@ function addOrder(){
 function renderOrders(){
   let orders = Storage.get("orders");
   let html="";
+
   orders.forEach(o=>{
     html+=`
     <tr class="border-b hover:bg-gray-50 dark:hover:bg-gray-700">
       <td class="p-3">${o.customer}</td>
       <td class="p-3">${o.product}</td>
-      <td class="p-3">${badge(o.status)}</td>
+      <td class="p-3">
+        <select onchange="changeStatus(${o.id}, this.value)"
+          class="border rounded p-1 text-sm">
+          <option ${o.status==="Pending"?"selected":""}>Pending</option>
+          <option ${o.status==="Printing"?"selected":""}>Printing</option>
+          <option ${o.status==="Ready"?"selected":""}>Ready</option>
+          <option ${o.status==="Released"?"selected":""}>Released</option>
+        </select>
+      </td>
       <td class="p-3">₱${o.total-o.dp}</td>
       <td class="p-3 space-x-2">
         <button onclick="editOrder(${o.id})" class="text-blue-600">Edit</button>
@@ -340,7 +349,16 @@ function renderOrders(){
       </td>
     </tr>`;
   });
+
   ordersTable.innerHTML=html;
+}
+
+function changeStatus(id, newStatus){
+  let orders = Storage.get("orders");
+  let order = orders.find(o=>o.id===id);
+  order.status = newStatus;
+  Storage.set("orders",orders);
+  updateDashboard();
 }
 
 function deleteOrder(id){
