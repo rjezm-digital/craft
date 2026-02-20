@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RJEZM DIGITAL - Business Manager</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+body { background:#F6F0FF; }
+.card { background:white; border-radius:16px; box-shadow:0 4px 12px rgba(0,0,0,0.05); }
+.btn { background:#C8B6FF; color:white; padding:8px 14px; border-radius:10px; }
+.btn:hover { background:#9D7BFF; }
+.tab { cursor:pointer; padding:8px 12px; border-radius:8px; }
+.tab.active { background:#C8B6FF; color:white; }
+.low-stock { background:#ffe5e5; }
+</style>
+</head>
+<body class="p-4">
+
+<h1 class="text-2xl font-bold text-purple-700 mb-4">💜 RJEZM DIGITAL</h1>
+
+<!-- TABS -->
+<div class="flex gap-2 mb-4 flex-wrap">
+<div class="tab active" onclick="showTab('dashboard')">Dashboard</div>
+<div class="tab" onclick="showTab('orders')">Orders</div>
+<div class="tab" onclick="showTab('sales')">Sales</div>
+<div class="tab" onclick="showTab('inventory')">Inventory</div>
+<div class="tab" onclick="showTab('backup')">Backup</div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard" class="tab-content">
+<div class="grid md:grid-cols-4 gap-4 mb-6">
+<div class="card p-4">
+<h2 class="text-sm text-gray-500">Today Sales</h2>
+<p id="todaySales" class="text-xl font-bold text-purple-700">0</p>
+</div>
+<div class="card p-4">
+<h2 class="text-sm text-gray-500">Monthly Profit</h2>
+<p id="monthlyProfit" class="text-xl font-bold text-purple-700">0</p>
+</div>
+<div class="card p-4">
+<h2 class="text-sm text-gray-500">Pending Orders</h2>
+<p id="pendingOrders" class="text-xl font-bold text-purple-700">0</p>
+</div>
+<div class="card p-4">
+<h2 class="text-sm text-gray-500">Low Stock Items</h2>
+<p id="lowStockCount" class="text-xl font-bold text-purple-700">0</p>
+</div>
+</div>
+
+<div class="grid md:grid-cols-2 gap-6">
+<div class="card p-4">
+<canvas id="salesChart"></canvas>
+</div>
+<div class="card p-4">
+<canvas id="orderChart"></canvas>
+</div>
+</div>
+</div>
+
+<!-- ORDERS -->
+<div id="orders" class="tab-content hidden">
+<div class="card p-4 mb-4">
+<h2 class="font-bold mb-2">Add Order</h2>
+<input id="oName" placeholder="Customer Name" class="border p-2 rounded w-full mb-2">
+<select id="oProduct" class="border p-2 rounded w-full mb-2">
+<option>Notebook</option>
+<option>Activity Book</option>
+<option>Photo Print</option>
+<option>Souvenir</option>
+<option>Sticker</option>
+</select>
+<input id="oQty" type="number" placeholder="Quantity" class="border p-2 rounded w-full mb-2">
+<input id="oTotal" type="number" placeholder="Total Amount" class="border p-2 rounded w-full mb-2">
+<input id="oDP" type="number" placeholder="Downpayment" class="border p-2 rounded w-full mb-2">
+<button class="btn w-full" onclick="addOrder()">Save Order</button>
+</div>
+
+<div id="orderList" class="grid md:grid-cols-2 gap-4"></div>
+</div>
+
+<!-- SALES -->
+<div id="sales" class="tab-content hidden">
+<div class="card p-4 mb-4">
+<h2 class="font-bold mb-2">Add Sale</h2>
+<input id="saleAmount" type="number" placeholder="Amount" class="border p-2 rounded w-full mb-2">
+<button class="btn w-full" onclick="addSale()">Add Sale</button>
+</div>
+
+<div class="card p-4 mb-4">
+<h2 class="font-bold mb-2">Add Expense</h2>
+<input id="expenseAmount" type="number" placeholder="Amount" class="border p-2 rounded w-full mb-2">
+<button class="btn w-full" onclick="addExpense()">Add Expense</button>
+</div>
+</div>
+
+<!-- INVENTORY -->
+<div id="inventory" class="tab-content hidden">
+<div class="card p-4 mb-4">
+<h2 class="font-bold mb-2">Add Material</h2>
+<input id="iName" placeholder="Material Name" class="border p-2 rounded w-full mb-2">
+<input id="iQty" type="number" placeholder="Quantity" class="border p-2 rounded w-full mb-2">
+<input id="iMin" type="number" placeholder="Minimum Level" class="border p-2 rounded w-full mb-2">
+<button class="btn w-full" onclick="addInventory()">Save</button>
+</div>
+<div id="inventoryList" class="grid md:grid-cols-2 gap-4"></div>
+</div>
+
+<!-- BACKUP -->
+<div id="backup" class="tab-content hidden">
+<div class="card p-4">
+<button class="btn mb-2 w-full" onclick="exportBackup()">Export Backup</button>
+<input type="file" onchange="importBackup(event)" class="w-full">
+</div>
+</div>
+
+<script>
+const DB={
+save:(k,d)=>localStorage.setItem(k,JSON.stringify(d)),
+load:(k)=>JSON.parse(localStorage.getItem(k))||[]
+};
+
+function showTab(tab){
+document.querySelectorAll('.tab-content').forEach(t=>t.classList.add('hidden'));
+document.getElementById(tab).classList.remove('hidden');
+document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+event.target.classList.add('active');
+}
+
+function addOrder(){
+let orders=DB.load('orders');
+orders.push({
+name:oName.value,
+product:oProduct.value,
+qty:oQty.value,
+total:Number(oTotal.value),
+dp:Number(oDP.value),
+status:"Pending"
+});
+DB.save('orders',orders);
+renderOrders();
+updateDashboard();
+}
+
+function renderOrders(){
+let orders=DB.load('orders');
+orderList.innerHTML='';
+orders.forEach((o,i)=>{
+orderList.innerHTML+=`
+<div class="card p-4">
+<h3 class="font-bold">${o.name}</h3>
+<p>${o.product} (${o.qty})</p>
+<p>Total: ₱${o.total}</p>
+<p>Balance: ₱${o.total-o.dp}</p>
+<select onchange="updateStatus(${i},this.value)" class="border p-1 rounded w-full mt-2">
+<option ${o.status=="Pending"?"selected":""}>Pending</option>
+<option ${o.status=="Designing"?"selected":""}>Designing</option>
+<option ${o.status=="Printing"?"selected":""}>Printing</option>
+<option ${o.status=="Assembling"?"selected":""}>Assembling</option>
+<option ${o.status=="Ready"?"selected":""}>Ready</option>
+<option ${o.status=="Released"?"selected":""}>Released</option>
+</select>
+</div>`;
+});
+}
+
+function updateStatus(i,status){
+let orders=DB.load('orders');
+orders[i].status=status;
+DB.save('orders',orders);
+updateDashboard();
+renderCharts();
+}
+
+function addSale(){
+let sales=DB.load('sales');
+sales.push({amount:Number(saleAmount.value),date:new Date().toLocaleDateString()});
+DB.save('sales',sales);
+updateDashboard();
+renderCharts();
+}
+
+function addExpense(){
+let exp=DB.load('expenses');
+exp.push({amount:Number(expenseAmount.value),date:new Date().toLocaleDateString()});
+DB.save('expenses',exp);
+updateDashboard();
+}
+
+function addInventory(){
+let inv=DB.load('inventory');
+inv.push({name:iName.value,qty:Number(iQty.value),min:Number(iMin.value)});
+DB.save('inventory',inv);
+renderInventory();
+updateDashboard();
+}
+
+function renderInventory(){
+let inv=DB.load('inventory');
+inventoryList.innerHTML='';
+inv.forEach(item=>{
+inventoryList.innerHTML+=`
+<div class="card p-4 ${item.qty<=item.min?'low-stock':''}">
+<h3 class="font-bold">${item.name}</h3>
+<p>Stock: ${item.qty}</p>
+<p>Minimum: ${item.min}</p>
+</div>`;
+});
+}
+
+function updateDashboard(){
+let sales=DB.load('sales');
+let exp=DB.load('expenses');
+let orders=DB.load('orders');
+let inv=DB.load('inventory');
+
+let today=new Date().toLocaleDateString();
+let todayTotal=sales.filter(s=>s.date==today).reduce((a,b)=>a+b.amount,0);
+let monthlyProfit=sales.reduce((a,b)=>a+b.amount,0)-exp.reduce((a,b)=>a+b.amount,0);
+let pending=orders.filter(o=>o.status!="Released").length;
+let low=inv.filter(i=>i.qty<=i.min).length;
+
+todaySales.textContent="₱"+todayTotal;
+monthlyProfit.textContent="₱"+monthlyProfit;
+pendingOrders.textContent=pending;
+lowStockCount.textContent=low;
+renderCharts();
+}
+
+let salesChart,orderChart;
+
+function renderCharts(){
+let sales=DB.load('sales');
+let orders=DB.load('orders');
+
+let saleTotal=sales.reduce((a,b)=>a+b.amount,0);
+let released=orders.filter(o=>o.status=="Released").length;
+let pending=orders.length-released;
+
+if(salesChart) salesChart.destroy();
+if(orderChart) orderChart.destroy();
+
+salesChart=new Chart(document.getElementById('salesChart'),{
+type:'bar',
+data:{
+labels:["Total Sales"],
+datasets:[{label:"Sales",data:[saleTotal],backgroundColor:"#C8B6FF"}]
+}
+});
+
+orderChart=new Chart(document.getElementById('orderChart'),{
+type:'doughnut',
+data:{
+labels:["Released","Pending"],
+datasets:[{data:[released,pending],backgroundColor:["#9D7BFF","#E5DBFF"]}]
+}
+});
+}
+
+function exportBackup(){
+let data={
+orders:DB.load('orders'),
+sales:DB.load('sales'),
+expenses:DB.load('expenses'),
+inventory:DB.load('inventory')
+};
+let blob=new Blob([JSON.stringify(data)],{type:"application/json"});
+let a=document.createElement('a');
+a.href=URL.createObjectURL(blob);
+a.download="rjezm_backup.json";
+a.click();
+}
+
+function importBackup(e){
+let file=e.target.files[0];
+let reader=new FileReader();
+reader.onload=function(){
+let data=JSON.parse(reader.result);
+DB.save('orders',data.orders||[]);
+DB.save('sales',data.sales||[]);
+DB.save('expenses',data.expenses||[]);
+DB.save('inventory',data.inventory||[]);
+updateDashboard();
+renderOrders();
+renderInventory();
+};
+reader.readAsText(file);
+}
+
+renderOrders();
+renderInventory();
+updateDashboard();
+</script>
+
+</body>
+</html>
