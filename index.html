@@ -241,21 +241,19 @@ const Storage = {
 
 /* ================= LOGIN ================= */
 function login(){
-  let saved = localStorage.getItem("rjezm_pin");
-  if(!saved){
-    localStorage.setItem("rjezm_pin",pinInput.value);
-    alert("PIN Set!");
-  }else{
-    if(pinInput.value!==saved){ alert("Wrong PIN"); return; }
+  const DEFAULT_PIN = "1234";
+  let saved = localStorage.getItem("rjezm_pin") || DEFAULT_PIN;
+
+  if(pinInput.value !== saved){
+    alert("Wrong PIN");
+    return;
   }
+
+  localStorage.setItem("rjezm_pin", saved);
+
   loginScreen.classList.add("hidden");
   app.classList.remove("hidden");
   updateDashboard();
-}
-
-function logout(){
-  app.classList.add("hidden");
-  loginScreen.classList.remove("hidden");
 }
 
 /* ================= DARK MODE ================= */
