@@ -392,19 +392,6 @@ function renderCustomers(){
   customersList.innerHTML=html;
 }
 
-/* ================= INVENTORY ================= */
-function renderInventory(){
-  let inventory = Storage.get("inventory");
-  let html="";
-  inventory.forEach(i=>{
-    let low=i.qty<=i.min?"text-red-500":"";
-    html+=`<div class="border-b py-2 ${low}">
-      ${i.name||"Material"} — ${i.qty||0}
-    </div>`;
-  });
-  inventoryList.innerHTML=html;
-}
-
 /* ================= BACKUP ================= */
 function exportBackup(){
   let data={
