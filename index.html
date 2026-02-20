@@ -159,9 +159,48 @@ body{
 
     <!-- INVENTORY -->
     <div id="inventoryPage" class="hidden">
-      <h1 class="text-2xl font-bold mb-6">Inventory</h1>
-      <div id="inventoryList" class="card p-6"></div>
+  <h1 class="text-2xl font-bold mb-6">Inventory</h1>
+
+  <!-- Add Inventory -->
+  <div class="card p-6 mb-6">
+    <div class="grid md:grid-cols-4 gap-4">
+      <input id="invName" placeholder="Item Name"
+        class="border p-2 rounded">
+
+      <select id="invType" class="border p-2 rounded">
+        <option value="Material">Material</option>
+        <option value="Product">Product</option>
+      </select>
+
+      <input id="invQty" type="number" placeholder="Quantity"
+        class="border p-2 rounded">
+
+      <input id="invMin" type="number" placeholder="Minimum Level"
+        class="border p-2 rounded">
     </div>
+
+    <button onclick="addInventory()"
+      class="bg-purple-600 text-white px-4 py-2 rounded mt-4 w-full">
+      Add Item
+    </button>
+  </div>
+
+  <!-- Inventory Table -->
+  <div class="card p-6">
+    <table class="w-full text-sm">
+      <thead class="table-header">
+        <tr>
+          <th class="p-3 text-left">Name</th>
+          <th class="p-3 text-left">Type</th>
+          <th class="p-3 text-left">Stock</th>
+          <th class="p-3 text-left">Min</th>
+          <th class="p-3 text-left">Status</th>
+        </tr>
+      </thead>
+      <tbody id="inventoryList"></tbody>
+    </table>
+  </div>
+</div>
 
     <!-- BACKUP -->
     <div id="backupPage" class="hidden">
@@ -403,6 +442,44 @@ function exportCSV(){
   a.click();
 }
 
+/* ================= ADD INVENTORY ================= */
+function addInventory(){
+  let inventory = Storage.get("inventory");
+
+  inventory.push({
+    id:Date.now(),
+    name:invName.value,
+    type:invType.value,
+    qty:+invQty.value,
+    min:+invMin.value
+  });
+
+  Storage.set("inventory",inventory);
+  updateDashboard();
+}
+
+/* ================= RENDER INVENTORY ================= */
+function renderInventory(){
+  let inventory = Storage.get("inventory");
+  let html="";
+
+  inventory.forEach(i=>{
+    let status = i.qty <= i.min
+      ? `<span class="text-red-500 font-semibold">Low Stock</span>`
+      : `<span class="text-green-600">OK</span>`;
+
+    html+=`
+    <tr class="border-b hover:bg-gray-50 dark:hover:bg-gray-700">
+      <td class="p-3">${i.name}</td>
+      <td class="p-3">${i.type}</td>
+      <td class="p-3">${i.qty}</td>
+      <td class="p-3">${i.min}</td>
+      <td class="p-3">${status}</td>
+    </tr>`;
+  });
+
+  inventoryList.innerHTML=html;
+}
 </script>
 </body>
 </html>
