@@ -425,9 +425,6 @@ function editOrder(id){
 
   if(newTotal!==null){
     o.total = +newTotal;
-    Storage.set("orders",orders);
-    updateDashboard();
-  }
 }
 /* ================= RECEIPT ================= */
 function printReceipt(id){
