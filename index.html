@@ -3,69 +3,87 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>RJEZM DIGITAL - Business Manager</title>
+<title>RJEZM DIGITAL - Pro</title>
 
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
 body { background:#F6F0FF; }
-.card { background:white; border-radius:16px; box-shadow:0 4px 12px rgba(0,0,0,0.05); }
-.btn { background:#C8B6FF; color:white; padding:8px 14px; border-radius:10px; }
-.btn:hover { background:#9D7BFF; }
-.tab { cursor:pointer; padding:8px 12px; border-radius:8px; }
-.tab.active { background:#C8B6FF; color:white; }
-.low-stock { background:#ffe5e5; }
+.sidebar {
+background: linear-gradient(180deg,#C8B6FF,#9D7BFF,#7B5BFF);
+}
+.glass {
+background: rgba(255,255,255,0.7);
+backdrop-filter: blur(10px);
+border-radius:20px;
+box-shadow:0 8px 20px rgba(0,0,0,0.05);
+}
+.card-gradient {
+background: linear-gradient(135deg,#C8B6FF,#9D7BFF);
+color:white;
+border-radius:20px;
+}
+.active-link {
+background: rgba(255,255,255,0.2);
+}
 </style>
 </head>
-<body class="p-4">
+<body class="flex min-h-screen">
 
-<h1 class="text-2xl font-bold text-purple-700 mb-4">💜 RJEZM DIGITAL</h1>
+<!-- SIDEBAR -->
+<div id="sidebar" class="sidebar w-64 text-white p-6 space-y-6 fixed md:relative h-full transition-all duration-300">
+<h1 class="text-xl font-bold">💜 RJEZM DIGITAL</h1>
 
-<!-- TABS -->
-<div class="flex gap-2 mb-4 flex-wrap">
-<div class="tab active" onclick="showTab('dashboard')">Dashboard</div>
-<div class="tab" onclick="showTab('orders')">Orders</div>
-<div class="tab" onclick="showTab('sales')">Sales</div>
-<div class="tab" onclick="showTab('inventory')">Inventory</div>
-<div class="tab" onclick="showTab('backup')">Backup</div>
+<nav class="space-y-2">
+<div class="p-2 rounded cursor-pointer active-link" onclick="showTab('dashboard')">Dashboard</div>
+<div class="p-2 rounded cursor-pointer" onclick="showTab('orders')">Orders</div>
+<div class="p-2 rounded cursor-pointer" onclick="showTab('sales')">Sales</div>
+<div class="p-2 rounded cursor-pointer" onclick="showTab('inventory')">Inventory</div>
+<div class="p-2 rounded cursor-pointer" onclick="showTab('backup')">Backup</div>
+</nav>
 </div>
+
+<!-- MAIN -->
+<div class="flex-1 p-6 md:ml-64">
+
+<!-- MOBILE TOGGLE -->
+<button class="md:hidden mb-4 bg-purple-500 text-white px-4 py-2 rounded" onclick="toggleSidebar()">☰ Menu</button>
 
 <!-- DASHBOARD -->
-<div id="dashboard" class="tab-content">
-<div class="grid md:grid-cols-4 gap-4 mb-6">
-<div class="card p-4">
-<h2 class="text-sm text-gray-500">Today Sales</h2>
-<p id="todaySales" class="text-xl font-bold text-purple-700">0</p>
+<div id="dashboard">
+<h2 class="text-2xl font-bold text-purple-700 mb-6">Dashboard</h2>
+
+<div class="grid md:grid-cols-4 gap-6 mb-8">
+<div class="card-gradient p-6">
+<p>Total Sales</p>
+<h3 id="totalSales" class="text-2xl font-bold">₱0</h3>
 </div>
-<div class="card p-4">
-<h2 class="text-sm text-gray-500">Monthly Profit</h2>
-<p id="monthlyProfit" class="text-xl font-bold text-purple-700">0</p>
+<div class="card-gradient p-6">
+<p>Monthly Profit</p>
+<h3 id="monthlyProfit" class="text-2xl font-bold">₱0</h3>
 </div>
-<div class="card p-4">
-<h2 class="text-sm text-gray-500">Pending Orders</h2>
-<p id="pendingOrders" class="text-xl font-bold text-purple-700">0</p>
+<div class="card-gradient p-6">
+<p>Active Orders</p>
+<h3 id="activeOrders" class="text-2xl font-bold">0</h3>
 </div>
-<div class="card p-4">
-<h2 class="text-sm text-gray-500">Low Stock Items</h2>
-<p id="lowStockCount" class="text-xl font-bold text-purple-700">0</p>
+<div class="card-gradient p-6">
+<p>Low Stock</p>
+<h3 id="lowStock" class="text-2xl font-bold">0</h3>
 </div>
 </div>
 
 <div class="grid md:grid-cols-2 gap-6">
-<div class="card p-4">
-<canvas id="salesChart"></canvas>
-</div>
-<div class="card p-4">
-<canvas id="orderChart"></canvas>
-</div>
+<div class="glass p-6"><canvas id="salesChart"></canvas></div>
+<div class="glass p-6"><canvas id="ordersChart"></canvas></div>
 </div>
 </div>
 
 <!-- ORDERS -->
-<div id="orders" class="tab-content hidden">
-<div class="card p-4 mb-4">
-<h2 class="font-bold mb-2">Add Order</h2>
+<div id="orders" class="hidden">
+<h2 class="text-2xl font-bold text-purple-700 mb-6">Orders</h2>
+
+<div class="glass p-6 mb-6">
 <input id="oName" placeholder="Customer Name" class="border p-2 rounded w-full mb-2">
 <select id="oProduct" class="border p-2 rounded w-full mb-2">
 <option>Notebook</option>
@@ -74,221 +92,107 @@ body { background:#F6F0FF; }
 <option>Souvenir</option>
 <option>Sticker</option>
 </select>
-<input id="oQty" type="number" placeholder="Quantity" class="border p-2 rounded w-full mb-2">
 <input id="oTotal" type="number" placeholder="Total Amount" class="border p-2 rounded w-full mb-2">
 <input id="oDP" type="number" placeholder="Downpayment" class="border p-2 rounded w-full mb-2">
-<button class="btn w-full" onclick="addOrder()">Save Order</button>
+<button onclick="addOrder()" class="bg-purple-500 text-white px-4 py-2 rounded w-full">Save Order</button>
 </div>
 
-<div id="orderList" class="grid md:grid-cols-2 gap-4"></div>
+<div id="ordersTable" class="glass p-6"></div>
 </div>
 
 <!-- SALES -->
-<div id="sales" class="tab-content hidden">
-<div class="card p-4 mb-4">
-<h2 class="font-bold mb-2">Add Sale</h2>
-<input id="saleAmount" type="number" placeholder="Amount" class="border p-2 rounded w-full mb-2">
-<button class="btn w-full" onclick="addSale()">Add Sale</button>
-</div>
+<div id="sales" class="hidden">
+<h2 class="text-2xl font-bold text-purple-700 mb-6">Sales & Expenses</h2>
 
-<div class="card p-4 mb-4">
-<h2 class="font-bold mb-2">Add Expense</h2>
-<input id="expenseAmount" type="number" placeholder="Amount" class="border p-2 rounded w-full mb-2">
-<button class="btn w-full" onclick="addExpense()">Add Expense</button>
+<div class="grid md:grid-cols-2 gap-6">
+<div class="glass p-6">
+<input id="saleAmount" type="number" placeholder="Add Sale" class="border p-2 rounded w-full mb-2">
+<button onclick="addSale()" class="bg-purple-500 text-white px-4 py-2 rounded w-full">Add Sale</button>
+</div>
+<div class="glass p-6">
+<input id="expenseAmount" type="number" placeholder="Add Expense" class="border p-2 rounded w-full mb-2">
+<button onclick="addExpense()" class="bg-purple-500 text-white px-4 py-2 rounded w-full">Add Expense</button>
+</div>
 </div>
 </div>
 
 <!-- INVENTORY -->
-<div id="inventory" class="tab-content hidden">
-<div class="card p-4 mb-4">
-<h2 class="font-bold mb-2">Add Material</h2>
+<div id="inventory" class="hidden">
+<h2 class="text-2xl font-bold text-purple-700 mb-6">Inventory</h2>
+
+<div class="glass p-6 mb-6">
 <input id="iName" placeholder="Material Name" class="border p-2 rounded w-full mb-2">
 <input id="iQty" type="number" placeholder="Quantity" class="border p-2 rounded w-full mb-2">
 <input id="iMin" type="number" placeholder="Minimum Level" class="border p-2 rounded w-full mb-2">
-<button class="btn w-full" onclick="addInventory()">Save</button>
+<button onclick="addInventory()" class="bg-purple-500 text-white px-4 py-2 rounded w-full">Save</button>
 </div>
-<div id="inventoryList" class="grid md:grid-cols-2 gap-4"></div>
+
+<div id="inventoryTable" class="glass p-6"></div>
 </div>
 
 <!-- BACKUP -->
-<div id="backup" class="tab-content hidden">
-<div class="card p-4">
-<button class="btn mb-2 w-full" onclick="exportBackup()">Export Backup</button>
+<div id="backup" class="hidden">
+<h2 class="text-2xl font-bold text-purple-700 mb-6">Backup</h2>
+<div class="glass p-6">
+<button onclick="exportBackup()" class="bg-purple-500 text-white px-4 py-2 rounded w-full mb-4">Export Backup</button>
 <input type="file" onchange="importBackup(event)" class="w-full">
 </div>
 </div>
 
+</div>
+
 <script>
-const DB={
-save:(k,d)=>localStorage.setItem(k,JSON.stringify(d)),
-load:(k)=>JSON.parse(localStorage.getItem(k))||[]
-};
+const DB={save:(k,d)=>localStorage.setItem(k,JSON.stringify(d)),load:(k)=>JSON.parse(localStorage.getItem(k))||[]};
+
+function toggleSidebar(){
+document.getElementById("sidebar").classList.toggle("-translate-x-full");
+}
 
 function showTab(tab){
-document.querySelectorAll('.tab-content').forEach(t=>t.classList.add('hidden'));
-document.getElementById(tab).classList.remove('hidden');
-document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-event.target.classList.add('active');
+["dashboard","orders","sales","inventory","backup"].forEach(id=>{
+document.getElementById(id).classList.add("hidden");
+});
+document.getElementById(tab).classList.remove("hidden");
 }
 
 function addOrder(){
-let orders=DB.load('orders');
-orders.push({
-name:oName.value,
-product:oProduct.value,
-qty:oQty.value,
-total:Number(oTotal.value),
-dp:Number(oDP.value),
-status:"Pending"
-});
-DB.save('orders',orders);
-renderOrders();
-updateDashboard();
+let data=DB.load("orders");
+data.push({name:oName.value,product:oProduct.value,total:+oTotal.value,dp:+oDP.value,status:"Active"});
+DB.save("orders",data);
+renderOrders(); updateDashboard();
 }
 
 function renderOrders(){
-let orders=DB.load('orders');
-orderList.innerHTML='';
-orders.forEach((o,i)=>{
-orderList.innerHTML+=`
-<div class="card p-4">
-<h3 class="font-bold">${o.name}</h3>
-<p>${o.product} (${o.qty})</p>
-<p>Total: ₱${o.total}</p>
-<p>Balance: ₱${o.total-o.dp}</p>
-<select onchange="updateStatus(${i},this.value)" class="border p-1 rounded w-full mt-2">
-<option ${o.status=="Pending"?"selected":""}>Pending</option>
-<option ${o.status=="Designing"?"selected":""}>Designing</option>
-<option ${o.status=="Printing"?"selected":""}>Printing</option>
-<option ${o.status=="Assembling"?"selected":""}>Assembling</option>
-<option ${o.status=="Ready"?"selected":""}>Ready</option>
-<option ${o.status=="Released"?"selected":""}>Released</option>
-</select>
-</div>`;
-});
+let data=DB.load("orders");
+ordersTable.innerHTML="<table class='w-full'><tr><th>Name</th><th>Product</th><th>Balance</th></tr>"+
+data.map(o=>`<tr><td>${o.name}</td><td>${o.product}</td><td>₱${o.total-o.dp}</td></tr>`).join("")+"</table>";
 }
 
-function updateStatus(i,status){
-let orders=DB.load('orders');
-orders[i].status=status;
-DB.save('orders',orders);
-updateDashboard();
-renderCharts();
-}
-
-function addSale(){
-let sales=DB.load('sales');
-sales.push({amount:Number(saleAmount.value),date:new Date().toLocaleDateString()});
-DB.save('sales',sales);
-updateDashboard();
-renderCharts();
-}
-
-function addExpense(){
-let exp=DB.load('expenses');
-exp.push({amount:Number(expenseAmount.value),date:new Date().toLocaleDateString()});
-DB.save('expenses',exp);
-updateDashboard();
-}
-
-function addInventory(){
-let inv=DB.load('inventory');
-inv.push({name:iName.value,qty:Number(iQty.value),min:Number(iMin.value)});
-DB.save('inventory',inv);
-renderInventory();
-updateDashboard();
-}
-
-function renderInventory(){
-let inv=DB.load('inventory');
-inventoryList.innerHTML='';
-inv.forEach(item=>{
-inventoryList.innerHTML+=`
-<div class="card p-4 ${item.qty<=item.min?'low-stock':''}">
-<h3 class="font-bold">${item.name}</h3>
-<p>Stock: ${item.qty}</p>
-<p>Minimum: ${item.min}</p>
-</div>`;
-});
-}
+function addSale(){let s=DB.load("sales");s.push(+saleAmount.value);DB.save("sales",s);updateDashboard();}
+function addExpense(){let e=DB.load("expenses");e.push(+expenseAmount.value);DB.save("expenses",e);updateDashboard();}
+function addInventory(){let i=DB.load("inventory");i.push({name:iName.value,qty:+iQty.value,min:+iMin.value});DB.save("inventory",i);renderInventory();updateDashboard();}
+function renderInventory(){let i=DB.load("inventory");inventoryTable.innerHTML="<table class='w-full'><tr><th>Name</th><th>Stock</th></tr>"+i.map(m=>`<tr><td>${m.name}</td><td>${m.qty}</td></tr>`).join("")+"</table>";}
 
 function updateDashboard(){
-let sales=DB.load('sales');
-let exp=DB.load('expenses');
-let orders=DB.load('orders');
-let inv=DB.load('inventory');
+let sales=DB.load("sales").reduce((a,b)=>a+b,0);
+let exp=DB.load("expenses").reduce((a,b)=>a+b,0);
+let orders=DB.load("orders").length;
+let low=DB.load("inventory").filter(i=>i.qty<=i.min).length;
 
-let today=new Date().toLocaleDateString();
-let todayTotal=sales.filter(s=>s.date==today).reduce((a,b)=>a+b.amount,0);
-let monthlyProfit=sales.reduce((a,b)=>a+b.amount,0)-exp.reduce((a,b)=>a+b.amount,0);
-let pending=orders.filter(o=>o.status!="Released").length;
-let low=inv.filter(i=>i.qty<=i.min).length;
+totalSales.textContent="₱"+sales;
+monthlyProfit.textContent="₱"+(sales-exp);
+activeOrders.textContent=orders;
+lowStock.textContent=low;
 
-todaySales.textContent="₱"+todayTotal;
-monthlyProfit.textContent="₱"+monthlyProfit;
-pendingOrders.textContent=pending;
-lowStockCount.textContent=low;
-renderCharts();
-}
-
-let salesChart,orderChart;
-
-function renderCharts(){
-let sales=DB.load('sales');
-let orders=DB.load('orders');
-
-let saleTotal=sales.reduce((a,b)=>a+b.amount,0);
-let released=orders.filter(o=>o.status=="Released").length;
-let pending=orders.length-released;
-
-if(salesChart) salesChart.destroy();
-if(orderChart) orderChart.destroy();
-
-salesChart=new Chart(document.getElementById('salesChart'),{
-type:'bar',
-data:{
-labels:["Total Sales"],
-datasets:[{label:"Sales",data:[saleTotal],backgroundColor:"#C8B6FF"}]
-}
+new Chart(document.getElementById("salesChart"),{
+type:"bar",
+data:{labels:["Sales"],datasets:[{data:[sales],backgroundColor:"#9D7BFF"}]}
 });
 
-orderChart=new Chart(document.getElementById('orderChart'),{
-type:'doughnut',
-data:{
-labels:["Released","Pending"],
-datasets:[{data:[released,pending],backgroundColor:["#9D7BFF","#E5DBFF"]}]
-}
+new Chart(document.getElementById("ordersChart"),{
+type:"doughnut",
+data:{labels:["Orders"],datasets:[{data:[orders],backgroundColor:["#C8B6FF"]}]}
 });
-}
-
-function exportBackup(){
-let data={
-orders:DB.load('orders'),
-sales:DB.load('sales'),
-expenses:DB.load('expenses'),
-inventory:DB.load('inventory')
-};
-let blob=new Blob([JSON.stringify(data)],{type:"application/json"});
-let a=document.createElement('a');
-a.href=URL.createObjectURL(blob);
-a.download="rjezm_backup.json";
-a.click();
-}
-
-function importBackup(e){
-let file=e.target.files[0];
-let reader=new FileReader();
-reader.onload=function(){
-let data=JSON.parse(reader.result);
-DB.save('orders',data.orders||[]);
-DB.save('sales',data.sales||[]);
-DB.save('expenses',data.expenses||[]);
-DB.save('inventory',data.inventory||[]);
-updateDashboard();
-renderOrders();
-renderInventory();
-};
-reader.readAsText(file);
 }
 
 renderOrders();
