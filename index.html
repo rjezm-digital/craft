@@ -267,6 +267,150 @@ function saveEdit(id){
   updateDashboard();
 }
 
+<script>
+
+/* ================= STATUS BADGES ================= */
+function statusBadge(status){
+  const colors = {
+    Pending:"bg-yellow-200 text-yellow-800",
+    Printing:"bg-blue-200 text-blue-800",
+    Ready:"bg-green-200 text-green-800",
+    Released:"bg-purple-200 text-purple-800"
+  };
+  return `<span class="px-2 py-1 rounded text-xs ${colors[status]||''}">${status}</span>`;
+}
+
+/* ================= EDIT ORDER ================= */
+function editOrder(id){
+  let orders = Storage.get("orders");
+  let o = orders.find(x=>x.id===id);
+
+  let modal = `
+  <div id="editModal" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center">
+    <div class="glass p-6 w-96">
+      <h2 class="text-lg font-bold mb-4">Edit Order</h2>
+      <input id="editCustomer" value="${o.customer}" class="border p-2 rounded w-full mb-2">
+      <input id="editProduct" value="${o.product}" class="border p-2 rounded w-full mb-2">
+      <input id="editTotal" type="number" value="${o.total}" class="border p-2 rounded w-full mb-2">
+      <input id="editDP" type="number" value="${o.dp}" class="border p-2 rounded w-full mb-2">
+      <button onclick="saveEdit(${id})" class="bg-purple-500 text-white px-4 py-2 rounded w-full mb-2">Save</button>
+      <button onclick="closeModal()" class="bg-gray-400 text-white px-4 py-2 rounded w-full">Cancel</button>
+    </div>
+  </div>`;
+  document.body.insertAdjacentHTML("beforeend",modal);
+}
+
+function saveEdit(id){
+  let orders = Storage.get("orders");
+  let o = orders.find(x=>x.id===id);
+
+  o.customer = editCustomer.value;
+  o.product = editProduct.value;
+  o.total = Number(editTotal.value);
+  o.dp = Number(editDP.value);
+
+  Storage.set("orders",orders);
+  closeModal();
+  renderOrders();
+  updateDashboard();
+}
+
+function closeModal(){
+  document.getElementById("editModal").remove();
+}
+
+/* ================= PRINTABLE RECEIPT VIEW ================= */
+function printReceipt(id){
+  let orders = Storage.get("orders");
+  let o = orders.find(x=>x.id===id);
+
+  let w = window.open("");
+  w.document.write(`
+    <h2>RJEZM DIGITAL</h2>
+    <p>Customer: ${o.customer}</p>
+    <p>Product: ${o.product}</p>
+    <p>Total: ₱${o.total}</p>
+    <p>DP: ₱${o.dp}</p>
+    <p>Balance: ₱${o.total-o.dp}</p>
+    <p>Status: ${o.status}</p>
+    <p>Date: ${new Date().toLocaleDateString()}</p>
+  `);
+  w.print();
+}
+
+/* ================= MONTHLY ANALYTICS ================= */
+function monthlyAnalytics(){
+  let orders = Storage.get("orders");
+  let month = new Date().getMonth();
+  let thisMonth = orders.filter(o=>{
+    let d = new Date(o.id);
+    return d.getMonth()===month;
+  });
+  alert("Orders This Month: "+thisMonth.length);
+}
+
+/* ================= BACKUP & RESTORE ================= */
+function exportBackup(){
+  let data = {
+    orders:Storage.get("orders"),
+    customers:Storage.get("customers"),
+    inventory:Storage.get("inventory"),
+    sales:Storage.get("sales"),
+    expenses:Storage.get("expenses")
+  };
+  let blob = new Blob([JSON.stringify(data)],{type:"application/json"});
+  let a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download="rjezm_backup.json";
+  a.click();
+}
+
+function importBackup(event){
+  let file = event.target.files[0];
+  let reader = new FileReader();
+  reader.onload=function(){
+    let data = JSON.parse(reader.result);
+    Object.keys(data).forEach(k=>Storage.set(k,data[k]));
+    renderOrders();
+    renderCustomers();
+    renderInventory();
+    updateDashboard();
+    alert("Backup Restored");
+  };
+  reader.readAsText(file);
+}
+
+/* ================= EXPORT CSV ================= */
+function exportCSV(){
+  let orders = Storage.get("orders");
+  let csv="Customer,Product,Total,DP,Status\n";
+  orders.forEach(o=>{
+    csv+=`${o.customer},${o.product},${o.total},${o.dp},${o.status}\n`;
+  });
+  let blob=new Blob([csv],{type:"text/csv"});
+  let a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download="orders.csv";
+  a.click();
+}
+
+/* ================= LOGO UPLOAD ================= */
+function uploadLogo(event){
+  let reader = new FileReader();
+  reader.onload=function(){
+    localStorage.setItem("rjezm_logo",reader.result);
+    document.getElementById("logoImg").src=reader.result;
+  };
+  reader.readAsDataURL(event.target.files[0]);
+}
+
+window.addEventListener("load",()=>{
+  let logo = localStorage.getItem("rjezm_logo");
+  if(logo && document.getElementById("logoImg")){
+    document.getElementById("logoImg").src=logo;
+  }
+});
+
 function closeModal(){
   document.getElementById("editModal").remove();
 }
@@ -479,7 +623,6 @@ function installApp(){
   }
 }
 
-</script>
 </script>
 
 </body>
