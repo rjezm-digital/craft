@@ -3,18 +3,19 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>RJEZM DIGITAL – SaaS Premium</title>
+<title>RJEZM DIGITAL – Final Boss Pro</title>
 
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <style>
 :root{
-  --primary:#C8B6FF;
-  --accent:#9D7BFF;
-  --bg-light:#F6F0FF;
-  --bg-dark:#1E1B2E;
-  --card-dark:#2A2640;
+  --primary:#8B5CF6;
+  --accent:#C4B5FD;
+  --bg-light:#F5F3FF;
+  --bg-dark:#111827;
+  --card-dark:#1F2937;
 }
 
 body{
@@ -28,120 +29,177 @@ body{
 }
 
 .sidebar{
-  background:linear-gradient(180deg,#C8B6FF,#9D7BFF,#7B5BFF);
+  background:linear-gradient(180deg,#C4B5FD,#8B5CF6);
 }
 
-.glass{
-  background:rgba(255,255,255,0.7);
-  backdrop-filter:blur(12px);
-  border-radius:20px;
-  box-shadow:0 10px 25px rgba(0,0,0,0.08);
+.card{
+  background:white;
+  border-radius:16px;
+  box-shadow:0 10px 30px rgba(0,0,0,0.05);
 }
 
-.dark .glass{
+.dark .card{
   background:var(--card-dark);
+}
+
+.table-header{
+  background:#F3F4F6;
+}
+
+.dark .table-header{
+  background:#374151;
 }
 </style>
 </head>
 <body class="min-h-screen">
 
-<!-- ================= LOGIN SCREEN ================= -->
+<!-- LOGIN -->
 <div id="loginScreen" class="flex items-center justify-center h-screen">
-  <div class="glass p-8 w-80 text-center">
-    <h1 class="text-2xl font-bold text-purple-700 mb-4">💜 RJEZM DIGITAL</h1>
-    <p class="mb-4">Enter PIN</p>
-    <input type="password" id="pinInput" class="border p-2 rounded w-full mb-4 text-center" maxlength="6">
-    <button onclick="login()" class="bg-purple-500 text-white px-4 py-2 rounded w-full">Unlock</button>
+  <div class="card p-8 w-80 text-center">
+    <h1 class="text-2xl font-bold text-purple-600 mb-4">💜 RJEZM DIGITAL</h1>
+    <input type="password" id="pinInput" placeholder="Enter PIN"
+      class="border p-2 rounded w-full mb-4 text-center">
+    <button onclick="login()"
+      class="bg-purple-600 text-white px-4 py-2 rounded w-full">
+      Unlock
+    </button>
   </div>
 </div>
 
-<!-- ================= MAIN APP ================= -->
+<!-- APP -->
 <div id="app" class="hidden flex">
 
-  <!-- Sidebar -->
-  <div class="sidebar w-64 min-h-screen text-white p-6 space-y-4">
-    <h2 class="text-xl font-bold mb-6">💜 RJEZM</h2>
-    <div class="cursor-pointer" onclick="showPage('dashboard')">Dashboard</div>
-    <div class="cursor-pointer" onclick="showPage('orders')">Orders</div>
-    <div class="cursor-pointer" onclick="showPage('customers')">Customers</div>
-    <div class="cursor-pointer" onclick="showPage('inventory')">Inventory</div>
-    <div class="cursor-pointer" onclick="logout()">Logout</div>
+  <!-- SIDEBAR -->
+  <div class="sidebar w-64 min-h-screen text-white p-6 space-y-6">
+    <h2 class="text-xl font-bold">💜 RJEZM</h2>
+    <nav class="space-y-2">
+      <div onclick="showPage('dashboard')" class="cursor-pointer">Dashboard</div>
+      <div onclick="showPage('orders')" class="cursor-pointer">Orders</div>
+      <div onclick="showPage('customers')" class="cursor-pointer">Customers</div>
+      <div onclick="showPage('inventory')" class="cursor-pointer">Inventory</div>
+      <div onclick="showPage('backup')" class="cursor-pointer">Backup</div>
+      <div onclick="toggleDark()" class="cursor-pointer">Toggle Dark</div>
+      <div onclick="logout()" class="cursor-pointer">Logout</div>
+    </nav>
   </div>
 
-  <!-- Main Content -->
-  <div class="flex-1 p-6">
+  <!-- MAIN -->
+  <div class="flex-1 p-8">
 
-    <!-- Topbar -->
-    <div class="flex justify-between items-center mb-6">
-      <h1 class="text-2xl font-bold">Dashboard</h1>
-      <button onclick="toggleDark()" class="bg-purple-500 text-white px-4 py-2 rounded">
-        Toggle Dark
-      </button>
-    </div>
-
-    <!-- Dashboard Cards -->
+    <!-- DASHBOARD -->
     <div id="dashboardPage">
+      <h1 class="text-2xl font-bold mb-6">Dashboard</h1>
+
       <div class="grid md:grid-cols-4 gap-6 mb-8">
-        <div class="glass p-6">
+        <div class="card p-6">
           <p>Total Sales</p>
-          <h3 id="totalSales" class="text-2xl font-bold text-purple-700">₱0</h3>
+          <h3 id="totalSales" class="text-2xl font-bold text-purple-600">₱0</h3>
         </div>
-        <div class="glass p-6">
-          <p>Monthly Profit</p>
-          <h3 id="monthlyProfit" class="text-2xl font-bold text-purple-700">₱0</h3>
+        <div class="card p-6">
+          <p>Profit</p>
+          <h3 id="profit" class="text-2xl font-bold text-purple-600">₱0</h3>
         </div>
-        <div class="glass p-6">
-          <p>Active Orders</p>
-          <h3 id="activeOrders" class="text-2xl font-bold text-purple-700">0</h3>
+        <div class="card p-6">
+          <p>Orders</p>
+          <h3 id="orderCount" class="text-2xl font-bold text-purple-600">0</h3>
         </div>
-        <div class="glass p-6">
+        <div class="card p-6">
           <p>Low Stock</p>
-          <h3 id="lowStock" class="text-2xl font-bold text-purple-700">0</h3>
+          <h3 id="lowStock" class="text-2xl font-bold text-red-500">0</h3>
         </div>
       </div>
 
-      <!-- Charts -->
-      <div class="grid md:grid-cols-2 gap-6">
-        <div class="glass p-6">
-          <canvas id="salesChart"></canvas>
-        </div>
-        <div class="glass p-6">
-          <canvas id="ordersChart"></canvas>
-        </div>
+      <div class="card p-6">
+        <canvas id="salesChart"></canvas>
       </div>
     </div>
 
-    <!-- Placeholder Pages -->
-    <div id="ordersPage" class="hidden"><h2>Orders Page (Part 2)</h2></div>
-    <div id="customersPage" class="hidden"><h2>Customers Page (Part 2)</h2></div>
-    <div id="inventoryPage" class="hidden"><h2>Inventory Page (Part 2)</h2></div>
+    <!-- ORDERS -->
+    <div id="ordersPage" class="hidden">
+      <h1 class="text-2xl font-bold mb-6">Orders</h1>
+
+      <div class="card p-6 mb-6">
+        <div class="grid md:grid-cols-4 gap-4">
+          <input id="orderCustomer" placeholder="Customer Name"
+            class="border p-2 rounded">
+          <input id="orderProduct" placeholder="Product"
+            class="border p-2 rounded">
+          <input id="orderTotal" type="number" placeholder="Total"
+            class="border p-2 rounded">
+          <input id="orderDP" type="number" placeholder="Downpayment"
+            class="border p-2 rounded">
+        </div>
+        <button onclick="addOrder()"
+          class="bg-purple-600 text-white px-4 py-2 rounded mt-4 w-full">
+          Save Order
+        </button>
+      </div>
+
+      <div class="card p-6">
+        <table class="w-full text-sm">
+          <thead class="table-header">
+            <tr>
+              <th class="p-3 text-left">Customer</th>
+              <th class="p-3 text-left">Product</th>
+              <th class="p-3 text-left">Status</th>
+              <th class="p-3 text-left">Balance</th>
+              <th class="p-3 text-left">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="ordersTable"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- CUSTOMERS -->
+    <div id="customersPage" class="hidden">
+      <h1 class="text-2xl font-bold mb-6">Customers</h1>
+      <div id="customersList" class="card p-6"></div>
+    </div>
+
+    <!-- INVENTORY -->
+    <div id="inventoryPage" class="hidden">
+      <h1 class="text-2xl font-bold mb-6">Inventory</h1>
+      <div id="inventoryList" class="card p-6"></div>
+    </div>
+
+    <!-- BACKUP -->
+    <div id="backupPage" class="hidden">
+      <h1 class="text-2xl font-bold mb-6">Backup</h1>
+      <div class="card p-6 space-y-4">
+        <button onclick="exportBackup()" class="bg-purple-600 text-white px-4 py-2 rounded w-full">
+          Export Backup
+        </button>
+        <input type="file" onchange="importBackup(event)" class="w-full">
+        <button onclick="exportCSV()" class="bg-gray-800 text-white px-4 py-2 rounded w-full">
+          Export Orders CSV
+        </button>
+      </div>
+    </div>
 
   </div>
 </div>
 
 <script>
-/* ================= STORAGE ADAPTER ================= */
+
+/* ================= STORAGE ================= */
 const Storage = {
-  get:(key)=>JSON.parse(localStorage.getItem(key)) || [],
-  set:(key,data)=>localStorage.setItem(key,JSON.stringify(data))
+  get:(k)=>JSON.parse(localStorage.getItem(k))||[],
+  set:(k,d)=>localStorage.setItem(k,JSON.stringify(d))
 };
 
-/* ================= LOGIN SYSTEM ================= */
+/* ================= LOGIN ================= */
 function login(){
-  let savedPIN = localStorage.getItem("rjezm_pin");
-
-  if(!savedPIN){
-    localStorage.setItem("rjezm_pin", pinInput.value);
-    alert("PIN Set Successfully!");
+  let saved = localStorage.getItem("rjezm_pin");
+  if(!saved){
+    localStorage.setItem("rjezm_pin",pinInput.value);
+    alert("PIN Set!");
   }else{
-    if(pinInput.value !== savedPIN){
-      alert("Incorrect PIN");
-      return;
-    }
+    if(pinInput.value!==saved){ alert("Wrong PIN"); return; }
   }
-
   loginScreen.classList.add("hidden");
   app.classList.remove("hidden");
+  updateDashboard();
 }
 
 function logout(){
@@ -152,179 +210,121 @@ function logout(){
 /* ================= DARK MODE ================= */
 function toggleDark(){
   document.body.classList.toggle("dark");
-  localStorage.setItem("rjezm_theme",
-    document.body.classList.contains("dark") ? "dark":"light"
-  );
+  localStorage.setItem("theme",
+    document.body.classList.contains("dark")?"dark":"light");
 }
-
-if(localStorage.getItem("rjezm_theme")==="dark"){
+if(localStorage.getItem("theme")==="dark"){
   document.body.classList.add("dark");
 }
 
-/* ================= PAGE NAVIGATION ================= */
+/* ================= NAV ================= */
 function showPage(page){
-  ["dashboardPage","ordersPage","customersPage","inventoryPage"]
-  .forEach(id=>document.getElementById(id).classList.add("hidden"));
-
+  ["dashboard","orders","customers","inventory","backup"]
+  .forEach(p=>document.getElementById(p+"Page").classList.add("hidden"));
   document.getElementById(page+"Page").classList.remove("hidden");
 }
 
-/* ================= DASHBOARD LOGIC ================= */
+/* ================= DASHBOARD ================= */
+let chart;
+
 function updateDashboard(){
-  let sales = Storage.get("sales");
   let orders = Storage.get("orders");
   let inventory = Storage.get("inventory");
-  let expenses = Storage.get("expenses");
 
-  let totalSales = sales.reduce((a,b)=>a+b,0);
-  let totalExpense = expenses.reduce((a,b)=>a+b,0);
-  let lowStock = inventory.filter(i=>i.qty<=i.min).length;
+  let total = orders.reduce((a,b)=>a+b.total,0);
+  let profit = orders.reduce((a,b)=>a+(b.total-b.dp),0);
+  let low = inventory.filter(i=>i.qty<=i.min).length;
 
-  document.getElementById("totalSales").innerText="₱"+totalSales;
-  document.getElementById("monthlyProfit").innerText="₱"+(totalSales-totalExpense);
-  document.getElementById("activeOrders").innerText=orders.length;
-  document.getElementById("lowStock").innerText=lowStock;
+  totalSales.innerText="₱"+total;
+  document.getElementById("profit").innerText="₱"+profit;
+  orderCount.innerText=orders.length;
+  lowStock.innerText=low;
 
-  renderCharts(totalSales, orders.length);
-}
+  if(chart) chart.destroy();
 
-/* ================= CHARTS ================= */
-let salesChart, ordersChart;
-
-function renderCharts(totalSales, totalOrders){
-  if(salesChart) salesChart.destroy();
-  if(ordersChart) ordersChart.destroy();
-
-  salesChart = new Chart(document.getElementById("salesChart"),{
+  chart = new Chart(document.getElementById("salesChart"),{
     type:"bar",
     data:{
-      labels:["Total Sales"],
+      labels:["Sales"],
       datasets:[{
-        data:[totalSales],
-        backgroundColor:"#9D7BFF"
+        data:[total],
+        backgroundColor:"#8B5CF6"
       }]
     }
   });
 
-  ordersChart = new Chart(document.getElementById("ordersChart"),{
-    type:"doughnut",
-    data:{
-      labels:["Orders"],
-      datasets:[{
-        data:[totalOrders],
-        backgroundColor:["#C8B6FF"]
-      }]
-    }
-  });
+  renderOrders();
+  renderCustomers();
+  renderInventory();
 }
 
-updateDashboard();
-</script>
-
-/* ================= STATUS BADGES ================= */
-function statusBadge(status){
-  const colors = {
+/* ================= STATUS BADGE ================= */
+function badge(status){
+  const map={
     Pending:"bg-yellow-200 text-yellow-800",
     Printing:"bg-blue-200 text-blue-800",
     Ready:"bg-green-200 text-green-800",
     Released:"bg-purple-200 text-purple-800"
   };
-  return `<span class="px-2 py-1 rounded text-xs ${colors[status]||''}">${status}</span>`;
+  return `<span class="px-2 py-1 rounded text-xs ${map[status]||''}">${status}</span>`;
 }
 
-/* ================= EDIT ORDER ================= */
-function editOrder(id){
+/* ================= ORDERS ================= */
+function addOrder(){
   let orders = Storage.get("orders");
-  let o = orders.find(x=>x.id===id);
-
-  let modal = `
-  <div id="editModal" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center">
-    <div class="glass p-6 w-96">
-      <h2 class="text-lg font-bold mb-4">Edit Order</h2>
-      <input id="editCustomer" value="${o.customer}" class="border p-2 rounded w-full mb-2">
-      <input id="editProduct" value="${o.product}" class="border p-2 rounded w-full mb-2">
-      <input id="editTotal" type="number" value="${o.total}" class="border p-2 rounded w-full mb-2">
-      <input id="editDP" type="number" value="${o.dp}" class="border p-2 rounded w-full mb-2">
-      <button onclick="saveEdit(${id})" class="bg-purple-500 text-white px-4 py-2 rounded w-full mb-2">Save</button>
-      <button onclick="closeModal()" class="bg-gray-400 text-white px-4 py-2 rounded w-full">Cancel</button>
-    </div>
-  </div>`;
-  document.body.insertAdjacentHTML("beforeend",modal);
-}
-
-function saveEdit(id){
-  let orders = Storage.get("orders");
-  let o = orders.find(x=>x.id===id);
-
-  o.customer = editCustomer.value;
-  o.product = editProduct.value;
-  o.total = Number(editTotal.value);
-  o.dp = Number(editDP.value);
-
+  orders.push({
+    id:Date.now(),
+    customer:orderCustomer.value,
+    product:orderProduct.value,
+    total:+orderTotal.value,
+    dp:+orderDP.value,
+    status:"Pending"
+  });
   Storage.set("orders",orders);
-  closeModal();
-  renderOrders();
   updateDashboard();
 }
 
-<script>
-
-/* ================= STATUS BADGES ================= */
-function statusBadge(status){
-  const colors = {
-    Pending:"bg-yellow-200 text-yellow-800",
-    Printing:"bg-blue-200 text-blue-800",
-    Ready:"bg-green-200 text-green-800",
-    Released:"bg-purple-200 text-purple-800"
-  };
-  return `<span class="px-2 py-1 rounded text-xs ${colors[status]||''}">${status}</span>`;
+function renderOrders(){
+  let orders = Storage.get("orders");
+  let html="";
+  orders.forEach(o=>{
+    html+=`
+    <tr class="border-b hover:bg-gray-50 dark:hover:bg-gray-700">
+      <td class="p-3">${o.customer}</td>
+      <td class="p-3">${o.product}</td>
+      <td class="p-3">${badge(o.status)}</td>
+      <td class="p-3">₱${o.total-o.dp}</td>
+      <td class="p-3 space-x-2">
+        <button onclick="editOrder(${o.id})" class="text-blue-600">Edit</button>
+        <button onclick="printReceipt(${o.id})" class="text-purple-600">Receipt</button>
+        <button onclick="deleteOrder(${o.id})" class="text-red-600">Delete</button>
+      </td>
+    </tr>`;
+  });
+  ordersTable.innerHTML=html;
 }
 
-/* ================= EDIT ORDER ================= */
-function editOrder(id){
-  let orders = Storage.get("orders");
-  let o = orders.find(x=>x.id===id);
-
-  let modal = `
-  <div id="editModal" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center">
-    <div class="glass p-6 w-96">
-      <h2 class="text-lg font-bold mb-4">Edit Order</h2>
-      <input id="editCustomer" value="${o.customer}" class="border p-2 rounded w-full mb-2">
-      <input id="editProduct" value="${o.product}" class="border p-2 rounded w-full mb-2">
-      <input id="editTotal" type="number" value="${o.total}" class="border p-2 rounded w-full mb-2">
-      <input id="editDP" type="number" value="${o.dp}" class="border p-2 rounded w-full mb-2">
-      <button onclick="saveEdit(${id})" class="bg-purple-500 text-white px-4 py-2 rounded w-full mb-2">Save</button>
-      <button onclick="closeModal()" class="bg-gray-400 text-white px-4 py-2 rounded w-full">Cancel</button>
-    </div>
-  </div>`;
-  document.body.insertAdjacentHTML("beforeend",modal);
-}
-
-function saveEdit(id){
-  let orders = Storage.get("orders");
-  let o = orders.find(x=>x.id===id);
-
-  o.customer = editCustomer.value;
-  o.product = editProduct.value;
-  o.total = Number(editTotal.value);
-  o.dp = Number(editDP.value);
-
+function deleteOrder(id){
+  let orders = Storage.get("orders").filter(o=>o.id!==id);
   Storage.set("orders",orders);
-  closeModal();
-  renderOrders();
   updateDashboard();
 }
 
-function closeModal(){
-  document.getElementById("editModal").remove();
+function editOrder(id){
+  let orders = Storage.get("orders");
+  let o = orders.find(x=>x.id===id);
+  let newTotal = prompt("New Total:",o.total);
+  if(newTotal!==null){
+    o.total=+newTotal;
+    Storage.set("orders",orders);
+    updateDashboard();
+  }
 }
 
-/* ================= PRINTABLE RECEIPT VIEW ================= */
+/* ================= RECEIPT ================= */
 function printReceipt(id){
-  let orders = Storage.get("orders");
-  let o = orders.find(x=>x.id===id);
-
-  let w = window.open("");
+  let o = Storage.get("orders").find(x=>x.id===id);
+  let w=window.open("");
   w.document.write(`
     <h2>RJEZM DIGITAL</h2>
     <p>Customer: ${o.customer}</p>
@@ -332,298 +332,77 @@ function printReceipt(id){
     <p>Total: ₱${o.total}</p>
     <p>DP: ₱${o.dp}</p>
     <p>Balance: ₱${o.total-o.dp}</p>
-    <p>Status: ${o.status}</p>
-    <p>Date: ${new Date().toLocaleDateString()}</p>
   `);
   w.print();
 }
 
-/* ================= MONTHLY ANALYTICS ================= */
-function monthlyAnalytics(){
+/* ================= CUSTOMERS ================= */
+function renderCustomers(){
   let orders = Storage.get("orders");
-  let month = new Date().getMonth();
-  let thisMonth = orders.filter(o=>{
-    let d = new Date(o.id);
-    return d.getMonth()===month;
-  });
-  alert("Orders This Month: "+thisMonth.length);
-}
-
-/* ================= BACKUP & RESTORE ================= */
-function exportBackup(){
-  let data = {
-    orders:Storage.get("orders"),
-    customers:Storage.get("customers"),
-    inventory:Storage.get("inventory"),
-    sales:Storage.get("sales"),
-    expenses:Storage.get("expenses")
-  };
-  let blob = new Blob([JSON.stringify(data)],{type:"application/json"});
-  let a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download="rjezm_backup.json";
-  a.click();
-}
-
-function importBackup(event){
-  let file = event.target.files[0];
-  let reader = new FileReader();
-  reader.onload=function(){
-    let data = JSON.parse(reader.result);
-    Object.keys(data).forEach(k=>Storage.set(k,data[k]));
-    renderOrders();
-    renderCustomers();
-    renderInventory();
-    updateDashboard();
-    alert("Backup Restored");
-  };
-  reader.readAsText(file);
-}
-
-/* ================= EXPORT CSV ================= */
-function exportCSV(){
-  let orders = Storage.get("orders");
-  let csv="Customer,Product,Total,DP,Status\n";
+  let grouped={};
   orders.forEach(o=>{
-    csv+=`${o.customer},${o.product},${o.total},${o.dp},${o.status}\n`;
+    grouped[o.customer]=(grouped[o.customer]||0)+o.total;
   });
-  let blob=new Blob([csv],{type:"text/csv"});
-  let a=document.createElement("a");
-  a.href=URL.createObjectURL(blob);
-  a.download="orders.csv";
-  a.click();
-}
-
-/* ================= LOGO UPLOAD ================= */
-function uploadLogo(event){
-  let reader = new FileReader();
-  reader.onload=function(){
-    localStorage.setItem("rjezm_logo",reader.result);
-    document.getElementById("logoImg").src=reader.result;
-  };
-  reader.readAsDataURL(event.target.files[0]);
-}
-
-window.addEventListener("load",()=>{
-  let logo = localStorage.getItem("rjezm_logo");
-  if(logo && document.getElementById("logoImg")){
-    document.getElementById("logoImg").src=logo;
-  }
-});
-
-function closeModal(){
-  document.getElementById("editModal").remove();
-}
-
-/* ================= PRINTABLE RECEIPT VIEW ================= */
-function printReceipt(id){
-  let orders = Storage.get("orders");
-  let o = orders.find(x=>x.id===id);
-
-  let w = window.open("");
-  w.document.write(`
-    <h2>RJEZM DIGITAL</h2>
-    <p>Customer: ${o.customer}</p>
-    <p>Product: ${o.product}</p>
-    <p>Total: ₱${o.total}</p>
-    <p>DP: ₱${o.dp}</p>
-    <p>Balance: ₱${o.total-o.dp}</p>
-    <p>Status: ${o.status}</p>
-    <p>Date: ${new Date().toLocaleDateString()}</p>
-  `);
-  w.print();
-}
-
-/* ================= MONTHLY ANALYTICS ================= */
-function monthlyAnalytics(){
-  let orders = Storage.get("orders");
-  let month = new Date().getMonth();
-  let thisMonth = orders.filter(o=>{
-    let d = new Date(o.id);
-    return d.getMonth()===month;
+  let html="";
+  Object.keys(grouped).forEach(name=>{
+    html+=`<div class="border-b py-2">
+      <strong>${name}</strong>
+      <p>Total Spent: ₱${grouped[name]}</p>
+    </div>`;
   });
-  alert("Orders This Month: "+thisMonth.length);
+  customersList.innerHTML=html;
 }
 
-/* ================= BACKUP & RESTORE ================= */
-function exportBackup(){
-  let data = {
-    orders:Storage.get("orders"),
-    customers:Storage.get("customers"),
-    inventory:Storage.get("inventory"),
-    sales:Storage.get("sales"),
-    expenses:Storage.get("expenses")
-  };
-  let blob = new Blob([JSON.stringify(data)],{type:"application/json"});
-  let a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download="rjezm_backup.json";
-  a.click();
-}
-
-function importBackup(event){
-  let file = event.target.files[0];
-  let reader = new FileReader();
-  reader.onload=function(){
-    let data = JSON.parse(reader.result);
-    Object.keys(data).forEach(k=>Storage.set(k,data[k]));
-    renderOrders();
-    renderCustomers();
-    renderInventory();
-    updateDashboard();
-    alert("Backup Restored");
-  };
-  reader.readAsText(file);
-}
-
-/* ================= EXPORT CSV ================= */
-function exportCSV(){
-  let orders = Storage.get("orders");
-  let csv="Customer,Product,Total,DP,Status\n";
-  orders.forEach(o=>{
-    csv+=`${o.customer},${o.product},${o.total},${o.dp},${o.status}\n`;
-  });
-  let blob=new Blob([csv],{type:"text/csv"});
-  let a=document.createElement("a");
-  a.href=URL.createObjectURL(blob);
-  a.download="orders.csv";
-  a.click();
-}
-
-/* ================= LOGO UPLOAD ================= */
-function uploadLogo(event){
-  let reader = new FileReader();
-  reader.onload=function(){
-    localStorage.setItem("rjezm_logo",reader.result);
-    document.getElementById("logoImg").src=reader.result;
-  };
-  reader.readAsDataURL(event.target.files[0]);
-}
-
-window.addEventListener("load",()=>{
-  let logo = localStorage.getItem("rjezm_logo");
-  if(logo && document.getElementById("logoImg")){
-    document.getElementById("logoImg").src=logo;
-  }
-});
-
-/* ================= AUTO LOCK SYSTEM ================= */
-let inactivityTimer;
-
-function resetTimer(){
-  clearTimeout(inactivityTimer);
-  inactivityTimer = setTimeout(()=>{
-    alert("Session Locked due to inactivity.");
-    logout();
-  }, 300000); // 5 minutes
-}
-
-["click","mousemove","keypress","touchstart"]
-.forEach(evt=>document.addEventListener(evt,resetTimer));
-
-resetTimer();
-
-/* ================= LOW STOCK POPUP ================= */
-function checkLowStockAlert(){
+/* ================= INVENTORY ================= */
+function renderInventory(){
   let inventory = Storage.get("inventory");
-  let low = inventory.filter(i=>i.qty<=i.min);
-  if(low.length>0){
-    alert("⚠ Low Stock Alert: " + low.map(i=>i.name).join(", "));
-  }
-}
-checkLowStockAlert();
-
-/* ================= PROFIT MARGIN TRACKER ================= */
-function profitMargin(){
-  let sales = Storage.get("orders").reduce((a,b)=>a+b.total,0);
-  let expenses = Storage.get("expenses").reduce((a,b)=>a+b,0);
-  let profit = sales-expenses;
-  let margin = sales>0 ? ((profit/sales)*100).toFixed(1) : 0;
-  alert("Profit Margin: "+margin+"%");
+  let html="";
+  inventory.forEach(i=>{
+    let low=i.qty<=i.min?"text-red-500":"";
+    html+=`<div class="border-b py-2 ${low}">
+      ${i.name||"Material"} — ${i.qty||0}
+    </div>`;
+  });
+  inventoryList.innerHTML=html;
 }
 
-/* ================= BEST SELLING PRODUCT ================= */
-function bestSelling(){
-  let orders = Storage.get("orders");
-  let count={};
+/* ================= BACKUP ================= */
+function exportBackup(){
+  let data={
+    orders:Storage.get("orders"),
+    inventory:Storage.get("inventory")
+  };
+  let blob=new Blob([JSON.stringify(data)],{type:"application/json"});
+  let a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download="rjezm_backup.json";
+  a.click();
+}
+
+function importBackup(e){
+  let file=e.target.files[0];
+  let reader=new FileReader();
+  reader.onload=function(){
+    let data=JSON.parse(reader.result);
+    Object.keys(data).forEach(k=>Storage.set(k,data[k]));
+    updateDashboard();
+  };
+  reader.readAsText(file);
+}
+
+function exportCSV(){
+  let orders=Storage.get("orders");
+  let csv="Customer,Product,Total,DP,Status\n";
   orders.forEach(o=>{
-    count[o.product]=(count[o.product]||0)+1;
+    csv+=`${o.customer},${o.product},${o.total},${o.dp},${o.status}\n`;
   });
-  let best = Object.keys(count).sort((a,b)=>count[b]-count[a])[0];
-  alert("Best Selling Product: "+(best||"None"));
-}
-
-/* ================= MONTHLY SALES BREAKDOWN CHART ================= */
-function monthlyBreakdown(){
-  let orders = Storage.get("orders");
-  let monthly = {};
-
-  orders.forEach(o=>{
-    let month = new Date(o.id).toLocaleString('default',{month:'short'});
-    monthly[month]=(monthly[month]||0)+o.total;
-  });
-
-  let ctx = document.getElementById("salesChart");
-  if(window.salesChart) window.salesChart.destroy();
-
-  window.salesChart = new Chart(ctx,{
-    type:"line",
-    data:{
-      labels:Object.keys(monthly),
-      datasets:[{
-        label:"Monthly Sales",
-        data:Object.values(monthly),
-        borderColor:"#9D7BFF",
-        backgroundColor:"rgba(157,123,255,0.2)"
-      }]
-    }
-  });
-}
-
-/* ================= DEADLINE CALENDAR VIEW ================= */
-function calendarView(){
-  let orders = Storage.get("orders");
-  let html="<h3>Upcoming Deadlines</h3>";
-  orders.forEach(o=>{
-    html+=`<p>${o.customer} - ${o.product} (${new Date(o.id).toLocaleDateString()})</p>`;
-  });
-  alert(html.replace(/<[^>]*>?/gm,''));
-}
-
-/* ================= ANIMATED COUNTERS ================= */
-function animateCounter(id, target){
-  let el = document.getElementById(id);
-  let start=0;
-  let increment = target/50;
-
-  let interval = setInterval(()=>{
-    start+=increment;
-    if(start>=target){
-      start=target;
-      clearInterval(interval);
-    }
-    el.innerText="₱"+Math.floor(start);
-  },20);
-}
-
-/* ================= PWA INSTALL SUPPORT ================= */
-let deferredPrompt;
-
-window.addEventListener('beforeinstallprompt',(e)=>{
-  e.preventDefault();
-  deferredPrompt = e;
-  console.log("App can be installed.");
-});
-
-function installApp(){
-  if(deferredPrompt){
-    deferredPrompt.prompt();
-  }else{
-    alert("Install option available from browser menu.");
-  }
+  let blob=new Blob([csv],{type:"text/csv"});
+  let a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download="orders.csv";
+  a.click();
 }
 
 </script>
-
 </body>
 </html>
