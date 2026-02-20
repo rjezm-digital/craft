@@ -386,7 +386,7 @@ function renderOrders(){
   ordersTable.innerHTML=html;
 }
 
-function changeStatus(id, newStatus){
+    function changeStatus(id, newStatus){
   let orders = Storage.get("orders");
   let inventory = Storage.get("inventory");
 
@@ -418,12 +418,6 @@ function changeStatus(id, newStatus){
   updateDashboard();
 }
 
-function deleteOrder(id){
-  let orders = Storage.get("orders").filter(o=>o.id!==id);
-  Storage.set("orders",orders);
-  updateDashboard();
-}
-
 function editOrder(id){
   let orders = Storage.get("orders");
   let o = orders.find(x=>x.id===id);
@@ -433,8 +427,6 @@ function editOrder(id){
     Storage.set("orders",orders);
     updateDashboard();
   }
-}
-
 /* ================= RECEIPT ================= */
 function printReceipt(id){
   let o = Storage.get("orders").find(x=>x.id===id);
