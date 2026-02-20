@@ -189,6 +189,10 @@ body{
 
   <!-- Inventory Table -->
   <div class="card p-6">
+      <input id="invSearch" 
+       placeholder="Search item..." 
+       onkeyup="renderInventory()"
+       class="border p-2 rounded mb-4 w-full">
     <table class="w-full text-sm">
       <thead class="table-header">
         <tr>
@@ -362,9 +366,34 @@ function renderOrders(){
 
 function changeStatus(id, newStatus){
   let orders = Storage.get("orders");
+  let inventory = Storage.get("inventory");
+
   let order = orders.find(o=>o.id===id);
+  let oldStatus = order.status;
+
   order.status = newStatus;
+
+  // If status changed to Released
+  if(oldStatus !== "Released" && newStatus === "Released"){
+
+    // Find matching product in inventory
+    let productItem = inventory.find(i =>
+      i.type === "Product" &&
+      i.name.toLowerCase() === order.product.toLowerCase()
+    );
+
+    if(productItem){
+      if(productItem.qty > 0){
+        productItem.qty -= 1;
+      } else {
+        alert("⚠ Product stock is already 0!");
+      }
+    }
+  }
+
   Storage.set("orders",orders);
+  Storage.set("inventory",inventory);
+
   updateDashboard();
 }
 
@@ -479,24 +508,62 @@ function addInventory(){
 /* ================= RENDER INVENTORY ================= */
 function renderInventory(){
   let inventory = Storage.get("inventory");
+  let searchTerm = (document.getElementById("invSearch")?.value || "").toLowerCase();
   let html="";
 
-  inventory.forEach(i=>{
+  inventory
+    .filter(i => i.name.toLowerCase().includes(searchTerm))
+    .forEach(i=>{
+
     let status = i.qty <= i.min
-      ? `<span class="text-red-500 font-semibold">Low Stock</span>`
-      : `<span class="text-green-600">OK</span>`;
+      ? `<span class="px-2 py-1 text-xs bg-red-100 text-red-600 rounded">Low</span>`
+      : `<span class="px-2 py-1 text-xs bg-green-100 text-green-600 rounded">OK</span>`;
 
     html+=`
     <tr class="border-b hover:bg-gray-50 dark:hover:bg-gray-700">
-      <td class="p-3">${i.name}</td>
+      <td class="p-3 font-medium">${i.name}</td>
       <td class="p-3">${i.type}</td>
       <td class="p-3">${i.qty}</td>
       <td class="p-3">${i.min}</td>
       <td class="p-3">${status}</td>
+      <td class="p-3 space-x-2">
+        <button onclick="adjustStock(${i.id},1)" class="text-green-600">+1</button>
+        <button onclick="adjustStock(${i.id},-1)" class="text-orange-600">-1</button>
+        <button onclick="editInventory(${i.id})" class="text-blue-600">Edit</button>
+        <button onclick="deleteInventory(${i.id})" class="text-red-600">Delete</button>
+      </td>
     </tr>`;
   });
 
   inventoryList.innerHTML=html;
+}
+function adjustStock(id, amount){
+  let inventory = Storage.get("inventory");
+  let item = inventory.find(i=>i.id===id);
+  item.qty += amount;
+  if(item.qty < 0) item.qty = 0;
+  Storage.set("inventory",inventory);
+  updateDashboard();
+}
+
+function editInventory(id){
+  let inventory = Storage.get("inventory");
+  let item = inventory.find(i=>i.id===id);
+
+  let newQty = prompt("New Quantity:", item.qty);
+  let newMin = prompt("New Minimum Level:", item.min);
+
+  if(newQty!==null) item.qty = +newQty;
+  if(newMin!==null) item.min = +newMin;
+
+  Storage.set("inventory",inventory);
+  updateDashboard();
+}
+
+function deleteInventory(id){
+  let inventory = Storage.get("inventory").filter(i=>i.id!==id);
+  Storage.set("inventory",inventory);
+  updateDashboard();
 }
 </script>
 </body>
