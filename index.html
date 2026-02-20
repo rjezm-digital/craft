@@ -409,11 +409,6 @@ function renderOrders(){
 
   Storage.set("orders",orders);
   Storage.set("inventory",inventory);
-  updateDashboard();
-}
-
-  Storage.set("orders",orders);
-  Storage.set("inventory",inventory);
 
   updateDashboard();
 }
@@ -421,10 +416,13 @@ function renderOrders(){
 function editOrder(id){
   let orders = Storage.get("orders");
   let o = orders.find(x=>x.id===id);
-  let newTotal = prompt("New Total:",o.total);
+  let newTotal = prompt("New Total:", o.total);
 
-  if(newTotal!==null){
+  if(newTotal !== null){
     o.total = +newTotal;
+    Storage.set("orders", orders);
+    updateDashboard();
+  }
 }
 /* ================= RECEIPT ================= */
 function printReceipt(id){
